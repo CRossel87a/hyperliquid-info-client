@@ -2,7 +2,7 @@ pub mod req;
 pub mod errors;
 pub mod response_structs;
 
-
+use std::collections::HashMap;
 pub use errors::Error;
 use crate::req::HttpClient;
 use reqwest::Client;
@@ -115,6 +115,11 @@ impl InfoClient {
         Ok(InfoClient {
             http_client: HttpClient { client, base_url },
         })
+    }
+
+    pub async fn all_mids(&self) -> Result<HashMap<String, String>> {
+        let input = InfoRequest::AllMids;
+        self.send_info_request(input).await
     }
 
     pub async fn user_state(&self, address: Address) -> Result<UserStateResponse> {
