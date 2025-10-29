@@ -8,7 +8,7 @@ use crate::req::HttpClient;
 use reqwest::Client;
 use alloy::primitives::Address;
 use serde::{Deserialize, Serialize};
-use crate::response_structs::UserStateResponse;
+use crate::response_structs::{UserStateResponse, Meta, AssetContext};
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;
 
@@ -74,6 +74,7 @@ pub enum InfoRequest {
     Referral {
         user: Address,
     },
+    MetaAndAssetCtxs
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -136,6 +137,11 @@ impl InfoClient {
 
         let return_data = self.http_client.post("/info", data).await?;
         serde_json::from_str(&return_data).map_err(|e| Error::JsonParse(e.to_string()))
+    }
+
+    pub async fn meta_and_asset_contexts(&self) -> Result<(Meta, Vec<AssetContext>)> {
+        let input = InfoRequest::MetaAndAssetCtxs;
+        self.send_info_request(input).await
     }
 }
 

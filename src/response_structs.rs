@@ -48,3 +48,32 @@ pub struct MarginSummary {
     pub total_ntl_pos: String,
     pub total_raw_usd: String,
 }
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct Meta {
+    pub universe: Vec<AssetMeta>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetMeta {
+    pub name: String,
+    pub sz_decimals: u32,
+    pub max_leverage: usize,
+    #[serde(default)]
+    pub only_isolated: Option<bool>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetContext {
+    pub day_ntl_vlm: String,
+    pub funding: String,
+    pub impact_pxs: Option<Vec<String>>,
+    pub mark_px: String,
+    pub mid_px: Option<String>,
+    pub open_interest: String,
+    pub oracle_px: String,
+    pub premium: Option<String>,
+    pub prev_day_px: String,
+}
