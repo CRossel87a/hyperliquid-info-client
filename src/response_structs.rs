@@ -1,5 +1,5 @@
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -54,7 +54,7 @@ pub struct Meta {
     pub universe: Vec<AssetMeta>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetMeta {
     pub name: String,
@@ -64,7 +64,7 @@ pub struct AssetMeta {
     pub only_isolated: Option<bool>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetContext {
     pub day_ntl_vlm: String,
