@@ -1611,7 +1611,7 @@ dependencies = [
 
 [[package]]
 name = "hyperliquid-info-client"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "alloy",
  "reqwest 0.11.27",

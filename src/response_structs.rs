@@ -6,8 +6,20 @@ use serde::{Deserialize, Serialize};
 pub struct UserStateResponse {
     pub asset_positions: Vec<AssetPosition>,
     pub cross_margin_summary: MarginSummary,
+    pub cross_maintenance_margin_used: String,
     pub margin_summary: MarginSummary,
+    pub time: u64,
     pub withdrawable: String,
+}
+
+impl UserStateResponse {
+    pub fn total_isolated_margin_used(&self) -> f64 {
+        self.asset_positions
+            .iter()
+            .filter(|ap| ap.position.leverage.type_string == "isolated")
+            .filter_map(|ap| ap.position.margin_used.parse::<f64>().ok())
+            .sum()
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -21,14 +33,24 @@ pub struct AssetPosition {
 #[serde(rename_all = "camelCase")]
 pub struct PositionData {
     pub coin: String,
+    pub cum_funding: CumulativeFunding,
     pub entry_px: Option<String>,
     pub leverage: Leverage,
     pub liquidation_px: Option<String>,
     pub margin_used: String,
+    pub max_leverage: u32,
     pub position_value: String,
     pub return_on_equity: String,
     pub szi: String,
     pub unrealized_pnl: String,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CumulativeFunding {
+    pub all_time: String,
+    pub since_change: String,
+    pub since_open: String,
 }
 
 #[derive(Deserialize, Debug)]
