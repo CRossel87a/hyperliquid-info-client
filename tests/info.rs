@@ -1,6 +1,22 @@
-use hyperliquid_info_client::InfoClient;
+use hyperliquid_info_client::{InfoClient, BaseUrl};
 
 
+
+#[tokio::test]
+async fn test_all_mids() {
+    let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await.unwrap();
+    let mids = info_client.all_mids(None).await.unwrap();
+    assert!(!mids.is_empty(), "Expected non-empty mids");
+    dbg!(&mids);
+}
+
+#[tokio::test]
+async fn test_all_mids_dex_xyz() {
+    let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await.unwrap();
+    let mids = info_client.all_mids(Some("xyz".into())).await.unwrap();
+    assert!(!mids.is_empty(), "Expected non-empty mids for dex xyz");
+    dbg!(&mids);
+}
 
 #[tokio::test]
 async fn test_fetch_meta() {
