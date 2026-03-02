@@ -1,6 +1,6 @@
 [package]
 name = "hyperliquid-info-client"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 
 [dependencies]
@@ -8,7 +8,7 @@ alloy = "1.7.3"
 reqwest = "0.11.23"
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.93"
-thiserror = "1.0.63"
+anyhow = "1.0.98"
 
 [dev-dependencies]
 tokio = { version = "1.38.0", features = ["macros", "rt-multi-thread","full"] }

@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use hyperliquid_info_client::{InfoClient, BaseUrl};
+use hyperliquid_info_client::InfoClient;
 
 
 
 #[tokio::test]
 async fn test_all_mids() {
-    let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await.unwrap();
+    let info_client = InfoClient::new(None).await.unwrap();
     let mids = info_client.all_mids(None).await.unwrap();
     assert!(!mids.is_empty(), "Expected non-empty mids");
     dbg!(&mids);
@@ -14,15 +14,31 @@ async fn test_all_mids() {
 
 #[tokio::test]
 async fn test_all_mids_dex_xyz() {
-    let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await.unwrap();
+    let info_client = InfoClient::new(None).await.unwrap();
     let mids = info_client.all_mids(Some("xyz".into())).await.unwrap();
     assert!(!mids.is_empty(), "Expected non-empty mids for dex xyz");
     dbg!(&mids);
 }
 
 #[tokio::test]
+async fn test_meta() {
+    let info_client = InfoClient::new(None).await.unwrap();
+    let meta = info_client.meta(None).await.unwrap();
+    assert!(!meta.universe.is_empty(), "Expected non-empty universe");
+    dbg!(&meta.universe.len());
+}
+
+#[tokio::test]
+async fn test_meta_dex_xyz() {
+    let info_client = InfoClient::new(None).await.unwrap();
+    let meta = info_client.meta(Some("xyz".into())).await.unwrap();
+    assert!(!meta.universe.is_empty(), "Expected non-empty universe for dex xyz");
+    dbg!(&meta.universe.len());
+}
+
+#[tokio::test]
 async fn test_fetch_meta() {
-    let info_client = InfoClient::new(None, None).await.unwrap();
+    let info_client = InfoClient::new(None).await.unwrap();
 
     let (meta, a) = info_client.meta_and_asset_contexts(Some("xyz".into())).await.unwrap();
 
@@ -37,9 +53,7 @@ async fn test_fetch_meta() {
 
 #[tokio::test]
 async fn test_fetch_info() {
-    use hyperliquid_info_client::BaseUrl;
-
-    let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await.unwrap();
+    let info_client = InfoClient::new(None).await.unwrap();
     let info = info_client
         .user_state(
             "0x".parse().unwrap(),

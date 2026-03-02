@@ -1,4 +1,4 @@
-use crate::{BaseUrl, Error, Result};
+use anyhow::{anyhow, Context, Result};
 use reqwest::{Client, Response};
 use serde::Deserialize;
 
@@ -20,36 +20,29 @@ async fn parse_response(response: Response) -> Result<String> {
     let text = response
         .text()
         .await
-        .map_err(|e| Error::GenericRequest(e.to_string()))?;
+        .context("failed to read response body")?;
 
     if status_code < 400 {
         return Ok(text);
     }
     let error_data = serde_json::from_str::<ErrorData>(&text);
     if (400..500).contains(&status_code) {
-        let client_error = match error_data {
-            Ok(error_data) => Error::ClientRequest {
-                status_code,
-                error_code: Some(error_data.code),
-                error_message: error_data.msg,
-                headers,
-                error_data: Some(error_data.data),
-            },
-            Err(err) => Error::ClientRequest {
-                status_code,
-                error_message: text,
-                headers,
-                error_code: None,
-                error_data: Some(err.to_string()),
-            },
+        return match error_data {
+            Ok(error_data) => Err(anyhow!(
+                "Client error: status code: {status_code}, error code: {}, error message: {}, headers: {headers:?}, error data: {}",
+                error_data.code,
+                error_data.msg,
+                error_data.data,
+            )),
+            Err(err) => Err(anyhow!(
+                "Client error: status code: {status_code}, error message: {text}, headers: {headers:?}, error data: {err}",
+            )),
         };
-        return Err(client_error);
     }
 
-    Err(Error::ServerRequest {
-        status_code,
-        error_message: text,
-    })
+    Err(anyhow!(
+        "Server error: status code: {status_code}, error message: {text}",
+    ))
 }
 
 impl HttpClient {
@@ -61,16 +54,12 @@ impl HttpClient {
             .header("Content-Type", "application/json")
             .body(data)
             .build()
-            .map_err(|e| Error::GenericRequest(e.to_string()))?;
+            .context("failed to build request")?;
         let result = self
             .client
             .execute(request)
             .await
-            .map_err(|e| Error::GenericRequest(e.to_string()))?;
+            .context("failed to execute request")?;
         parse_response(result).await
-    }
-
-    pub fn is_mainnet(&self) -> bool {
-        self.base_url == BaseUrl::Mainnet.get_url()
     }
 }
