@@ -83,6 +83,11 @@ pub enum InfoRequest {
     }
 }
 
+#[derive(Deserialize)]
+struct PerpDex {
+    name: String,
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CandleSnapshotRequest {
@@ -135,6 +140,38 @@ impl InfoClient {
     pub async fn meta_and_asset_contexts(&self, dex: Option<String>) -> Result<(Meta, Vec<AssetContext>)> {
         let input = InfoRequest::MetaAndAssetCtxs { dex };
         self.send_info_request(input).await
+    }
+
+    /// Builds a map from symbol to exchange asset index.
+    ///
+    /// Standard perps use their position in the universe: `"BTC" => 0`, `"ETH" => 1`, etc.
+    /// HIP-3 perps use `100_000 + dex_index * 10_000 + asset_index`: `"xyz:TSLA" => 110001`, etc.
+    ///
+    /// Reference: <https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids>
+    pub async fn asset_map(&self) -> Result<HashMap<String, usize>> {
+        let mut map = HashMap::new();
+
+        // Standard perps
+        let meta = self.meta(None).await?;
+        for (i, asset) in meta.universe.iter().enumerate() {
+            map.insert(asset.name.clone(), i);
+        }
+
+        // HIP-3 dexes
+        let data = serde_json::to_string(&serde_json::json!({"type": "perpDexs"}))?;
+        let resp = self.http_client.post("/info", data).await?;
+        let dexes: Vec<Option<PerpDex>> = serde_json::from_str(&resp)?;
+
+        for (dex_index, dex) in dexes.iter().enumerate() {
+            let Some(dex) = dex else { continue };
+            let dex_meta = self.meta(Some(dex.name.clone())).await?;
+            for (i, asset) in dex_meta.universe.iter().enumerate() {
+                let index = 100_000 + dex_index * 10_000 + i;
+                map.insert(asset.name.clone(), index);
+            }
+        }
+
+        Ok(map)
     }
 }
 
