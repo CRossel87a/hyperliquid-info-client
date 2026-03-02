@@ -79,7 +79,10 @@ pub enum InfoRequest {
     Referral {
         user: Address,
     },
-    MetaAndAssetCtxs
+    MetaAndAssetCtxs {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        dex: Option<String>,
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -144,8 +147,8 @@ impl InfoClient {
         serde_json::from_str(&return_data).map_err(|e| Error::JsonParse(e.to_string()))
     }
 
-    pub async fn meta_and_asset_contexts(&self) -> Result<(Meta, Vec<AssetContext>)> {
-        let input = InfoRequest::MetaAndAssetCtxs;
+    pub async fn meta_and_asset_contexts(&self, dex: Option<String>) -> Result<(Meta, Vec<AssetContext>)> {
+        let input = InfoRequest::MetaAndAssetCtxs { dex };
         self.send_info_request(input).await
     }
 }
